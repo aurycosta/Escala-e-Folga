@@ -1,0 +1,11 @@
+{
+  "name": "Escala de Folgas",
+  "short_name": "Folgas",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
+  "icons": [
+    { "src": "logo.jpg", "sizes": "192x192", "type": "image/jpeg" }
+  ]
+}

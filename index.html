@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Escala de Folgas — Colaboradores</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0b1220"/>
+  <link rel="icon" href="logo.jpg">
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img class="brand-logo" src="logo.jpg" alt="Logos"/>
+      <div class="brand-text">
+        <div class="brand-title">Escala de Folgas</div>
+        <div class="brand-sub">Importe CSV • Configure folgas fixas • Imprima o mural</div>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button class="btn ghost" id="btnInstall" title="Instalar (PWA)" hidden>Instalar</button>
+      
+      <label class="small muted" style="display:flex;align-items:center;gap:8px">
+        <span>Setor</span>
+        <select id="cargoFilter" class="select">
+          <option value="__ALL__">Todos</option>
+        </select>
+      </label>
+
+      <button class="btn" id="btnPrint">Gerar PDF (Imprimir)</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="panel left">
+      <div class="panel-head">
+        <div class="h2">Colaboradores</div>
+        <div class="small muted">Lista + regras de folga</div>
+      </div>
+
+      <div class="controls">
+        <input id="search" class="input" placeholder="Buscar por nome ou matrícula…" autocomplete="off"/>
+        <div class="row">
+          <label class="file btn ghost">
+            Importar CSV
+            <input id="csvFile" type="file" accept=".csv,text/csv"/>
+          </label>
+          <button class="btn ghost" id="btnExportCSV">Exportar CSV</button>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <div id="employeeList" class="list"></div>
+      </div>
+
+      <div class="panel-foot">
+        <button class="btn" id="btnAdd">+ Adicionar colaborador</button>
+        <button class="btn danger ghost" id="btnReset" title="Limpa apenas os dados salvos neste navegador">Reset local</button>
+      </div>
+    </aside>
+
+    <section class="panel main">
+      <div class="panel-head main-head">
+        <div>
+          <div class="h2">Calendário</div>
+          <div class="small muted">Clique em uma célula para ajustar: <b>Folga alterada!</b> ou <b>Trabalha/Não folga</b>. Domingos especiais podem ser marcados como <b>Domingo trabalhado</b> no editar do colaborador.</div>
+        </div>
+
+        <div class="picker">
+          <label class="lbl">Ano
+            <select id="year"></select>
+          </label>
+          <label class="lbl">Mês
+            <select id="month"></select>
+          </label>
+          <button class="btn ghost" id="btnToday">Ir p/ mês atual</button>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <div class="legend">
+          <span class="chip off">Folga</span>
+          <span class="chip extra">Folga alterada!</span>
+          <span class="chip work">Trabalha/Não folga</span>
+          <span class="chip sunwork">Domingo trabalhado</span>
+        </div>
+
+        <div class="calendar-wrap">
+          <div id="calendar" class="calendar"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal: Add/Edit -->
+  <div class="modal" id="modal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-head">
+        <div>
+          <div class="h2" id="modalTitle">Colaborador</div>
+          <div class="small muted">Defina folgas fixas e ajustes do mês</div>
+        </div>
+        <button class="icon-btn" id="btnClose" aria-label="Fechar">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="grid2">
+          <label class="lbl">Nome
+            <input id="mName" class="input" placeholder="Ex: Maria da Silva"/>
+          </label>
+          <label class="lbl">Matrícula
+            <input id="mMat" class="input" placeholder="Ex: 12345"/>
+          </label>
+        </div>
+
+        <label class="lbl">Cargo / Setor
+          <input id="mCargo" class="input" placeholder="Ex: OPERADOR DE CAIXA"/>
+        </label>
+
+
+        <div class="box">
+          <div class="h3">Folga fixa</div>
+          <div class="week" id="mWeekdays"></div>
+          <div class="small muted" style="margin-top:8px">Ex.: se marcar <b>Sáb</b>, todos os sábados do mês viram folga automaticamente.</div>
+        </div>
+
+        <div class="box">
+          <div class="h3">Ajustes (somente para o mês selecionado)</div>
+          <div class="small muted">Use quando houver troca de folga/plantão em dias específicos.</div>
+          <div class="grid2" style="margin-top:10px">
+            <label class="lbl">Folga alterada! (data)
+              <input id="mExtraOff" class="input" type="date"/>
+            </label>
+            <button class="btn ghost" id="btnAddExtraOff" style="align-self:end">Adicionar</button>
+
+            <label class="lbl">Trabalha/Não folga (data)
+              <input id="mExtraWork" class="input" type="date"/>
+            </label>
+            <button class="btn ghost" id="btnAddExtraWork" style="align-self:end">Adicionar</button>
+          </div>
+
+          <div class="pillrows">
+            <div>
+              <div class="small muted">Folga alterada!</div>
+              <div id="listExtraOff" class="pills"></div>
+            </div>
+            <div>
+              <div class="small muted">Trabalha/Não folga</div>
+              <div id="listExtraWork" class="pills"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="h3">Domingos trabalhados (mês selecionado)</div>
+          <div class="small muted">Marque os domingos que este colaborador vai trabalhar. Eles aparecerão em <b>vermelho</b> no calendário e no PDF.</div>
+          <div id="mSundayWork" class="sunday-grid" style="margin-top:10px"></div>
+        </div>
+
+        <div class="box">
+          <div class="h3">Férias / Afastamento</div>
+          <div class="small muted">Defina um período de <b>Férias</b> ou <b>Afastamento</b>. Durante o período, o nome ficará tachado e aparecerá um aviso no calendário e no PDF com contagem regressiva para o retorno.</div>
+          <div class="grid2" style="margin-top:10px">
+            <label class="lbl">Tipo
+              <select id="mAbsType" class="select">
+                <option value="">— Nenhum —</option>
+                <option value="ferias">Férias</option>
+                <option value="afastamento">Afastamento</option>
+              </select>
+            </label>
+            <div></div>
+            <label class="lbl">Início
+              <input id="mAbsStart" class="input" type="date"/>
+            </label>
+            <label class="lbl">Fim
+              <input id="mAbsEnd" class="input" type="date"/>
+            </label>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:10px">
+            <button class="btn ghost danger" id="btnClearAbs" type="button">Limpar período</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-foot">
+        <button class="btn danger ghost" id="btnDelete" hidden>Excluir</button>
+        <div class="spacer"></div>
+        <button class="btn ghost" id="btnCancel">Cancelar</button>
+        <button class="btn" id="btnSave">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <span class="small muted">Dica: para gerar “PDF”, clique em <b>Gerar PDF (Imprimir)</b> e selecione “Salvar como PDF”.</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
