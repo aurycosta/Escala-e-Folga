@@ -10,16 +10,40 @@
   <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
+
+  <div id="loginOverlay" class="login-overlay">
+    <div class="login-box">
+      <div style="text-align: center; font-weight: 800; font-size: 20px; color: var(--blue); margin-bottom: 5px;">Escala de Folgas</div>
+      <p class="muted small" style="text-align: center; margin-bottom: 20px;">Acesso restrito por Loja (Banco de Dados em Nuvem)</p>
+
+      <label class="lbl">Selecione sua Loja
+        <select id="loginStore" class="select" style="margin-bottom:10px">
+          <option value="">-- Escolha --</option>
+          </select>
+      </label>
+      
+      <label class="lbl">Senha de Acesso
+        <input id="loginPassword" type="password" class="input" style="margin-bottom:14px" placeholder="Digite a senha">
+      </label>
+
+      <button id="btnLogin" class="btn" style="width:100%; padding: 12px; font-size: 15px;">Acessar Sistema</button>
+      <div id="loginError" class="small" style="color:var(--danger); margin-top:10px; text-align:center; display:none">Senha incorreta ou loja não selecionada.</div>
+    </div>
+  </div>
+
   <header class="topbar">
     <div class="brand">
-      <img class="brand-logo" src="logo.jpg" alt="Logos"/>
+      <img class="brand-logo" src="logo.jpg" alt="Logos" onerror="this.style.display='none'"/>
       <div class="brand-text">
         <div class="brand-title">Escala de Folgas</div>
-        <div class="brand-sub">Importe CSV • Configure folgas fixas • Imprima o mural</div>
+        <div class="brand-sub">Sincronização em Nuvem (Firebase)</div>
       </div>
     </div>
 
     <div class="top-actions">
+      <div id="currentStoreBadge" class="badge" style="background: rgba(44,123,229,.12); border-color: rgba(44,123,229,.4);">Loja: ---</div>
+      <button class="btn ghost danger" id="btnLogout" style="padding: 6px 12px; font-size: 12px;">Sair</button>
+
       <button class="btn ghost" id="btnInstall" title="Instalar (PWA)" hidden>Instalar</button>
       
       <label class="small muted" style="display:flex;align-items:center;gap:8px">
@@ -29,139 +53,112 @@
         </select>
       </label>
 
-      <button class="btn" id="btnPrint">Gerar PDF (Imprimir)</button>
+      <button class="btn" id="btnPrint">Gerar PDF</button>
     </div>
   </header>
 
   <main class="layout">
     <aside class="panel left">
-      <div class="panel-head">
-        <div class="h2">Colaboradores</div>
-        <div class="small muted">Lista + regras de folga</div>
+      <div class="panel-head main-head">
+        <div>
+          <div class="h2">Colaboradores</div>
+          <div class="small muted">Gerencie a equipe e restrições</div>
+        </div>
+        <button class="btn" id="btnAdd">+ Novo</button>
       </div>
-
       <div class="controls">
-        <input id="search" class="input" placeholder="Buscar por nome ou matrícula…" autocomplete="off"/>
+        <input id="search" class="input" type="search" placeholder="Buscar por nome ou matrícula..."/>
         <div class="row">
-          <label class="file btn ghost">
-            Importar CSV
-            <input id="csvFile" type="file" accept=".csv,text/csv"/>
+          <label class="btn ghost file" style="flex:1" title="Importar CSV">
+            Importar CSV <input type="file" id="csvFile" accept=".csv"/>
           </label>
-          <button class="btn ghost" id="btnExportCSV">Exportar CSV</button>
+          <button class="btn ghost" id="btnExportCSV" title="Exportar CSV">Exportar</button>
         </div>
       </div>
-
       <div class="panel-body">
-        <div id="employeeList" class="list"></div>
-      </div>
-
-      <div class="panel-foot">
-        <button class="btn" id="btnAdd">+ Adicionar colaborador</button>
-        <button class="btn danger ghost" id="btnReset" title="Limpa apenas os dados salvos neste navegador">Reset local</button>
+        <div class="list" id="employeeList"></div>
       </div>
     </aside>
 
-    <section class="panel main">
+    <section class="panel right">
       <div class="panel-head main-head">
         <div>
-          <div class="h2">Calendário</div>
-          <div class="small muted">Clique em uma célula para ajustar: <b>Folga alterada!</b> ou <b>Trabalha/Não folga</b>. Domingos especiais podem ser marcados como <b>Domingo trabalhado</b> no editar do colaborador.</div>
+          <div class="h2">Mural de Escala</div>
+          <div class="small muted">Clique no dia para forçar Folga ou Trabalho</div>
         </div>
-
         <div class="picker">
-          <label class="lbl">Ano
-            <select id="year"></select>
-          </label>
-          <label class="lbl">Mês
-            <select id="month"></select>
-          </label>
-          <button class="btn ghost" id="btnToday">Ir p/ mês atual</button>
+          <button class="btn ghost" id="btnToday">Hoje</button>
+          <select id="month" class="select" style="width:130px"></select>
+          <select id="year" class="select" style="width:100px"></select>
         </div>
       </div>
-
-      <div class="panel-body">
+      <div class="panel-body" style="padding:16px">
         <div class="legend">
-          <span class="chip off">Folga</span>
-          <span class="chip extra">Folga alterada!</span>
-          <span class="chip work">Trabalha/Não folga</span>
-          <span class="chip sunwork">Domingo trabalhado</span>
+          <span class="chip">Trabalha</span>
+          <span class="chip off">Folga Fixa</span>
+          <span class="chip extra">Folga Alterada</span>
+          <span class="chip work">Trabalha (Extra)</span>
+          <span class="chip sunwork">Dom Trab.</span>
         </div>
-
-        <div class="calendar-wrap">
-          <div id="calendar" class="calendar"></div>
-        </div>
+        <div class="calendar-wrap" id="calendar"></div>
+      </div>
+      <div class="panel-foot">
+        <button class="btn ghost danger" id="btnReset">Apagar Dados desta Loja no Servidor</button>
       </div>
     </section>
   </main>
 
-  <!-- Modal: Add/Edit -->
   <div class="modal" id="modal" aria-hidden="true">
-    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
       <div class="modal-head">
-        <div>
-          <div class="h2" id="modalTitle">Colaborador</div>
-          <div class="small muted">Defina folgas fixas e ajustes do mês</div>
-        </div>
-        <button class="icon-btn" id="btnClose" aria-label="Fechar">✕</button>
+        <div class="h2" id="modalTitle">Colaborador</div>
+        <button class="icon-btn" id="btnClose">✕</button>
       </div>
-
       <div class="modal-body">
         <div class="grid2">
-          <label class="lbl">Nome
-            <input id="mName" class="input" placeholder="Ex: Maria da Silva"/>
-          </label>
-          <label class="lbl">Matrícula
-            <input id="mMat" class="input" placeholder="Ex: 12345"/>
-          </label>
+          <label class="lbl">Nome Completo <input id="mName" class="input" type="text"/></label>
+          <label class="lbl">Matrícula <input id="mMat" class="input" type="text"/></label>
+        </div>
+        <div style="margin-top:10px">
+          <label class="lbl">Cargo / Setor <input id="mCargo" class="input" type="text" placeholder="Ex: Operador de Caixa"/></label>
         </div>
 
-        <label class="lbl">Cargo / Setor
-          <input id="mCargo" class="input" placeholder="Ex: OPERADOR DE CAIXA"/>
-        </label>
-
-
         <div class="box">
-          <div class="h3">Folga fixa</div>
+          <div class="h3">Folgas Fixas na Semana</div>
           <div class="week" id="mWeekdays"></div>
-          <div class="small muted" style="margin-top:8px">Ex.: se marcar <b>Sáb</b>, todos os sábados do mês viram folga automaticamente.</div>
         </div>
 
         <div class="box">
-          <div class="h3">Ajustes (somente para o mês selecionado)</div>
-          <div class="small muted">Use quando houver troca de folga/plantão em dias específicos.</div>
-          <div class="grid2" style="margin-top:10px">
-            <label class="lbl">Folga alterada! (data)
-              <input id="mExtraOff" class="input" type="date"/>
-            </label>
-            <button class="btn ghost" id="btnAddExtraOff" style="align-self:end">Adicionar</button>
+          <div class="h3">Domingos Trabalhados (Mês atual)</div>
+          <div class="small muted">Marque os domingos que este colaborador VAI trabalhar. Os demais serão folga automaticamente.</div>
+          <div class="sunday-grid" id="mSundayWork" style="margin-top:10px"></div>
+        </div>
 
-            <label class="lbl">Trabalha/Não folga (data)
-              <input id="mExtraWork" class="input" type="date"/>
-            </label>
-            <button class="btn ghost" id="btnAddExtraWork" style="align-self:end">Adicionar</button>
+        <div class="pillrows">
+          <div class="box" style="margin-top:0">
+            <div class="h3" style="color:var(--orange)">Folgas Extras (Neste Mês)</div>
+            <div class="small muted">Dias que ele deveria trabalhar, mas vai folgar.</div>
+            <div style="display:flex; gap:8px; margin-top:10px">
+              <input type="date" id="mExtraOff" class="input"/>
+              <button class="btn ghost" id="btnAddExtraOff">Add</button>
+            </div>
+            <div class="pills" id="listExtraOff"></div>
           </div>
 
-          <div class="pillrows">
-            <div>
-              <div class="small muted">Folga alterada!</div>
-              <div id="listExtraOff" class="pills"></div>
+          <div class="box" style="margin-top:0">
+            <div class="h3" style="color:var(--blue)">Trabalha no dia de folga</div>
+            <div class="small muted">Dias que ele folgaria, mas vai trabalhar.</div>
+            <div style="display:flex; gap:8px; margin-top:10px">
+              <input type="date" id="mExtraWork" class="input"/>
+              <button class="btn ghost" id="btnAddExtraWork">Add</button>
             </div>
-            <div>
-              <div class="small muted">Trabalha/Não folga</div>
-              <div id="listExtraWork" class="pills"></div>
-            </div>
+            <div class="pills" id="listExtraWork"></div>
           </div>
         </div>
 
-        <div class="box">
-          <div class="h3">Domingos trabalhados (mês selecionado)</div>
-          <div class="small muted">Marque os domingos que este colaborador vai trabalhar. Eles aparecerão em <b>vermelho</b> no calendário e no PDF.</div>
-          <div id="mSundayWork" class="sunday-grid" style="margin-top:10px"></div>
-        </div>
-
-        <div class="box">
-          <div class="h3">Férias / Afastamento</div>
-          <div class="small muted">Defina um período de <b>Férias</b> ou <b>Afastamento</b>. Durante o período, o nome ficará tachado e aparecerá um aviso no calendário e no PDF com contagem regressiva para o retorno.</div>
+        <div class="box" style="background:#fffcf9; border-color:#fed7aa">
+          <div class="h3" style="color:#ea580c">Férias / Afastamento</div>
+          <div class="small muted">Ao registrar, o nome ficará tachado e aparecerá um aviso no calendário.</div>
           <div class="grid2" style="margin-top:10px">
             <label class="lbl">Tipo
               <select id="mAbsType" class="select">
@@ -171,12 +168,8 @@
               </select>
             </label>
             <div></div>
-            <label class="lbl">Início
-              <input id="mAbsStart" class="input" type="date"/>
-            </label>
-            <label class="lbl">Fim
-              <input id="mAbsEnd" class="input" type="date"/>
-            </label>
+            <label class="lbl">Início <input id="mAbsStart" class="input" type="date"/></label>
+            <label class="lbl">Fim <input id="mAbsEnd" class="input" type="date"/></label>
           </div>
           <div style="display:flex;justify-content:flex-end;margin-top:10px">
             <button class="btn ghost danger" id="btnClearAbs" type="button">Limpar período</button>
@@ -184,7 +177,6 @@
         </div>
 
       </div>
-
       <div class="modal-foot">
         <button class="btn danger ghost" id="btnDelete" hidden>Excluir</button>
         <div class="spacer"></div>
@@ -195,9 +187,9 @@
   </div>
 
   <footer class="foot">
-    <span class="small muted">Dica: para gerar “PDF”, clique em <b>Gerar PDF (Imprimir)</b> e selecione “Salvar como PDF”.</span>
+    <span class="small muted">Dica: para gerar “PDF”, clique em <b>Gerar PDF (Imprimir)</b> e selecione "Salvar como PDF".</span>
   </footer>
 
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
