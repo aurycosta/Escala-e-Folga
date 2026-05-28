@@ -83,15 +83,17 @@ const load = async () => {
   if(!loggedInStore) return;
   try {
     const dbRef = ref(database);
-    // Puxa os dados apenas da loja logada
     const snapshot = await get(child(dbRef, `escalas/${loggedInStore}`));
     if (snapshot.exists()) {
       state = snapshot.val();
+      
+      // AJUSTE CRÍTICO: Garante que os dados voltem como Array (O Firebase às vezes transforma em Objeto)
       if(!state.employees) state.employees = [];
+      else if (!Array.isArray(state.employees)) state.employees = Object.values(state.employees);
+
       if(!state.cargoFilter) state.cargoFilter = "__ALL__";
       selectedCargoFilter = state.cargoFilter;
     } else {
-      // Loja nova sem dados, inicia limpo
       state = { employees: [], selectedEmployeeId: null, cargoFilter: "__ALL__" };
     }
   } catch (e) {
@@ -103,7 +105,6 @@ const load = async () => {
 const save = async () => {
   if(!loggedInStore) return;
   try {
-    // Salva os dados no diretório da loja específica no Firebase
     const dbRef = ref(database, 'escalas/' + loggedInStore);
     await set(dbRef, state);
   } catch (e) {
@@ -112,7 +113,7 @@ const save = async () => {
   }
 };
 
-// ---------- CSV Parsers (Mantidos intactos) ----------
+// ---------- CSV Parsers ----------
 const normalize = (s) => (s||"").toString().trim();
 const parseCSV = (text) => {
   const lines = text.replace(/\r/g,"").split("\n").filter(l => l.trim().length>0);
@@ -467,19 +468,45 @@ const bindEvents = () => {
   $("#mAbsEnd")?.addEventListener("change", (ev) => { if(!draft) return; const v=ev.target.value; if(!v){ if(draft.absence) draft.absence.end=""; return;} draft.absence ||= {type:($("#mAbsType").value||"ferias"),start:"",end:""}; draft.absence.end=v; });
   $("#btnClearAbs")?.addEventListener("click", () => { if(!draft) return; draft.absence=null; if($("#mAbsType")) $("#mAbsType").value=""; if($("#mAbsStart")) $("#mAbsStart").value=""; if($("#mAbsEnd")) $("#mAbsEnd").value=""; });
 
+  // AJUSTE CRÍTICO AQUI: Importação CSV com Tratamento de Nuvem
   $("#csvFile").addEventListener("change", async (ev) => {
     const f = ev.target.files?.[0]; if(!f) return;
-    const text = await f.text(); const imported = parseEmployeesCSV(text);
-    const byMat = new Map(state.employees.filter(e=>e.matricula).map(e => [String(e.matricula), e]));
-    for(const emp of imported){
-      if(emp.matricula && byMat.has(String(emp.matricula))){
-        const existing = byMat.get(String(emp.matricula));
-        existing.name = emp.name || existing.name;
-        if(emp.cargo) existing.cargo = emp.cargo;
-        if(emp.absence) existing.absence = emp.absence;
-      } else state.employees.push(emp);
+    
+    try {
+      const text = await f.text(); 
+      const imported = parseEmployeesCSV(text);
+      
+      // Proteção: se o Firebase retornou Objeto, converte para Array antes de usar
+      if (!Array.isArray(state.employees)) {
+        state.employees = Object.values(state.employees || {});
+      }
+
+      const byMat = new Map(state.employees.filter(e=>e.matricula).map(e => [String(e.matricula), e]));
+      
+      for(const emp of imported){
+        if(emp.matricula && byMat.has(String(emp.matricula))){
+          const existing = byMat.get(String(emp.matricula));
+          existing.name = emp.name || existing.name;
+          if(emp.cargo) existing.cargo = emp.cargo;
+          if(emp.absence) existing.absence = emp.absence;
+        } else {
+          state.employees.push(emp);
+        }
+      }
+      
+      // Força a salvar as informações na nuvem e renderiza
+      await save(); 
+      renderAll(); 
+      
+      // Feedback visual
+      alert("✅ Importação concluída! CSV salvo com sucesso na loja: " + loggedInStore);
+      
+    } catch (error) {
+      console.error("Erro na Importação do CSV:", error);
+      alert("❌ Ocorreu um erro ao importar ou enviar o CSV para a nuvem. Verifique o arquivo.");
     }
-    await save(); renderAll(); ev.target.value = "";
+    
+    ev.target.value = ""; // Limpa o input
   });
 
   $("#btnExportCSV").addEventListener("click", () => downloadText(exportEmployeesCSV(), `escala_${loggedInStore}_${new Date().toISOString().slice(0,10)}.csv`));
