@@ -452,3 +452,37 @@ td.sunoff .cell {
   max-width: 380px;
   border: 1px solid var(--line);
 }
+/* =========================================================
+   AJUSTE DE FERRO: NOME NÃO VAZA NO CALENDÁRIO
+   ========================================================= */
+
+/* Força a coluna do colaborador a ter uma largura fixa máxima e esconder o excesso */
+.calendar tbody th {
+  max-width: 200px !important; /* Ajuste este valor se quiser mais ou menos espaço */
+  min-width: 200px !important;
+  width: 200px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: table-cell !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+/* Garante que o container interno não tente expandir a célula */
+.calendar tbody th > div {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  width: 100% !important;
+}
+
+/* Proteção para impressão (PDF) - para não cortar o nome no papel */
+@media print {
+  .calendar tbody th {
+    max-width: none !important;
+    min-width: 180px !important;
+    white-space: normal !important;
+    overflow: visible !important;
+  }
+}
