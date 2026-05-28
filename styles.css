@@ -377,3 +377,43 @@ td.extrawork .cell{background: rgba(44,123,229,.16); border-color: rgba(44,123,2
 .absence-row.abs-ferias .absence-msg{ color:#ea580c; }
 .absence-row.abs-afastamento td{ background: rgba(248, 113, 113, .10); }
 .absence-row.abs-afastamento .absence-msg{ color:#dc2626; }
+/* =========================================================
+   AJUSTE FINO CORRIGIDO: CONTROLE DE TEXTO GRANDE
+   ========================================================= */
+
+/* 1. Calendário: Corta o nome grande com "..." sem vazar por cima dos dias */
+.calendar tbody th {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Garante que na hora de Gerar o PDF o nome apareça inteiro novamente */
+@media print {
+  .calendar tbody th {
+    overflow: visible !important;
+    white-space: normal !important;
+  }
+}
+
+/* 2. Painel Lateral: Impede que o "Sem folga fixa" ou nomes quebrem a caixinha */
+.card .meta {
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.card .pill {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Se o texto dentro da pill estiver dentro de uma tag em negrito */
+.card .pill b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: middle;
+}
