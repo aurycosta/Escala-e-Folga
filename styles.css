@@ -417,3 +417,19 @@ td.extrawork .cell{background: rgba(44,123,229,.16); border-color: rgba(44,123,2
   max-width: 100%;
   vertical-align: middle;
 }
+/* =========================================================
+   FOLGA DE DOMINGO (CINZA CLARO)
+   ========================================================= */
+td.sunoff .cell {
+  background: rgba(11, 18, 32, 0.08); /* Fundo cinza claro */
+  border-color: rgba(11, 18, 32, 0.25); /* Borda cinza suave */
+  color: #0b1220; /* Cor da letra */
+}
+
+/* Garante que o cinza saia perfeitamente na hora de Gerar o PDF */
+@media print {
+  td.sunoff .cell {
+    background: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+  }
+}

@@ -237,13 +237,20 @@
     const sundayWork = (emp.sundayWork?.[key] || []);
     if(w === 0 && sundayWork.includes(day)) return {off:false, kind:"sundaywork"};
 
+    // =========================================================
+    // NOVO AJUSTE: Domingos não selecionados viram folga e recebem a cor sunoff
+    // =========================================================
+    if(w === 0 && !sundayWork.includes(day)) {
+      return {off: true, kind: "sunoff"};
+    }
+
     const extraWork = (emp.extraWork?.[key] || []);
     if(extraWork.includes(day)) return {off:false, kind:"extrawork"};
 
     const fixed = (emp.offWeekdays || []).includes(w);
     return {off: fixed, kind: fixed ? "off" : "work"};
   };
-
+  
   // ---------- UI ----------
   const fillPickers = () => {
     const ySel = $("#year");
@@ -369,9 +376,12 @@
       for(let d=1; d<=days; d++){
         const dt = new Date(selectedYear, selectedMonth, d);
         const info = isOff(e, dt);
-        const cls = info.kind === "absence" ? "absence" : (info.kind === "sundaywork" ? "sunwork" : (info.kind === "extraoff" ? "extraoff" : (info.kind === "extrawork" ? "extrawork" : (info.off ? "off" : ""))));
-        const title = info.kind === "absence" ? (e.absence?.type === "afastamento" ? "Afastamento" : "Férias") : (info.kind === "sundaywork" ? "Domingo trabalhado" : (info.kind === "extraoff" ? "Folga alterada!" : (info.kind === "extrawork" ? "Trabalha/Não folga" : (info.off ? "Folga" : "Trabalha"))));
+        
+        // AJUSTE: Aplicando a classe sunoff, titulo sunoff e marcação correta.
+        const cls = info.kind === "absence" ? "absence" : (info.kind === "sundaywork" ? "sunwork" : (info.kind === "sunoff" ? "sunoff" : (info.kind === "extraoff" ? "extraoff" : (info.kind === "extrawork" ? "extrawork" : (info.off ? "off" : "")))));
+        const title = info.kind === "absence" ? (e.absence?.type === "afastamento" ? "Afastamento" : "Férias") : (info.kind === "sundaywork" ? "Domingo trabalhado" : (info.kind === "sunoff" ? "Folga de Domingo" : (info.kind === "extraoff" ? "Folga alterada!" : (info.kind === "extrawork" ? "Trabalha/Não folga" : (info.off ? "Folga" : "Trabalha")))));
         const mark = info.kind === "absence" ? "" : (info.kind === "sundaywork" ? "D" : (info.off ? "F" : "T"));
+        
         body.push(`<td class="${cls}" data-date="${ymd(dt)}" title="${title}">
           <div class="cell">${mark}</div>
         </td>`);
@@ -413,10 +423,6 @@
         if(!emp) return;
 
         // Toggle logic:
-        // If already extraoff -> remove
-        // else if extrawork -> remove
-        // else if fixed off -> set extrawork (work override)
-        // else -> set extraoff
         const dt = parseYMD(dateStr);
         const key = monthKey();
         emp.extraOff ||= {};
@@ -427,7 +433,9 @@
         const extraOff = emp.extraOff[key];
         const extraWork = emp.extraWork[key];
 
-        const fixed = (emp.offWeekdays||[]).includes(dt.getDay());
+        // AJUSTE: Reconhecendo o domingo nativo no clique direto no calendário
+        const fixed = (emp.offWeekdays||[]).includes(dt.getDay()) || dt.getDay() === 0;
+        
         if(extraOff.includes(dateStr)){
           emp.extraOff[key] = extraOff.filter(x => x !== dateStr);
         } else if(extraWork.includes(dateStr)){
