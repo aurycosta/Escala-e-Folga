@@ -1,0 +1,536 @@
+/* Escala de Folgas — UI inspired by the provided logos (greens/blues/oranges) */
+:root{
+  /* Light theme (more like the logos), with strong contrast */
+  --bg:#f4f7ff;
+  --panel:#ffffff;
+  --panel2:#f8fbff;
+  --text:#0b1220;
+  --muted:#52607a;
+  --line:rgba(11,18,32,.14);
+  --shadow: 0 14px 40px rgba(2,6,23,.12);
+  --radius: 18px;
+
+  /* accents */
+  --blue:#2c7be5;   /* DelNorte-ish */
+  --green:#36c37d;  /* DelMoro-ish */
+  --orange:#ffb020; /* Aurora-ish */
+  --danger:#fb7185;
+  --ok:#34d399;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background: radial-gradient(1200px 600px at 18% 0%, rgba(44,123,229,.18), transparent 62%),
+              radial-gradient(900px 500px at 82% 12%, rgba(255,176,32,.16), transparent 58%),
+              radial-gradient(800px 450px at 50% 100%, rgba(54,195,125,.12), transparent 58%),
+              var(--bg);
+  color:var(--text);
+  font: 14px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 18px;
+  gap:14px;
+  position:sticky;
+  top:0;
+  z-index:20;
+  background: rgba(255,255,255,.78);
+  backdrop-filter: blur(10px);
+  border-bottom:1px solid var(--line);
+}
+
+.brand{display:flex;align-items:center;gap:12px;min-width:240px}
+.brand-logo{
+  width:190px;
+  height:56px;
+  object-fit:contain;
+  border-radius:12px;
+  background: rgba(255,255,255,.92);
+  border:1px solid var(--line);
+  padding:8px 10px;
+}
+.brand-title{font-size:18px;font-weight:800;letter-spacing:.2px}
+.brand-sub{font-size:12px;color:var(--muted)}
+
+.top-actions{display:flex;gap:10px;align-items:center}
+
+.layout{
+  display:grid;
+  grid-template-columns: 360px 1fr;
+  gap:16px;
+  padding:16px;
+}
+
+.panel{
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(248,251,255,.92));
+  border:1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow:hidden;
+}
+.panel-head{
+  padding:14px 14px 10px;
+  border-bottom:1px solid var(--line);
+}
+.panel-body{padding:14px}
+.panel-foot{
+  padding:14px;
+  border-top:1px solid var(--line);
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.h2{font-size:15px;font-weight:800}
+.h3{font-size:13px;font-weight:800}
+.small{font-size:12px}
+.muted{color:var(--muted)}
+
+.controls{padding:12px 14px 0; display:flex; flex-direction:column; gap:10px}
+.row{display:flex; gap:10px}
+
+.input, select{
+  width:100%;
+  padding:10px 10px;
+  border-radius: 14px;
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.92);
+  color:var(--text);
+  outline:none;
+}
+.input:focus, select:focus{border-color: rgba(44,123,229,.65); box-shadow: 0 0 0 3px rgba(44,123,229,.18)}
+
+.btn{
+  border:1px solid rgba(44,123,229,.55);
+  background: rgba(44,123,229,.14);
+  color:var(--text);
+  border-radius:14px;
+  padding:10px 12px;
+  cursor:pointer;
+  font-weight:700;
+  transition: transform .05s ease, background .15s ease, border-color .15s ease;
+  user-select:none;
+}
+.btn:hover{background: rgba(44,123,229,.20)}
+.btn:active{transform: translateY(1px)}
+.btn.ghost{
+  border-color: var(--line);
+  background: rgba(255,255,255,.70);
+}
+.btn.ghost:hover{background: rgba(255,255,255,.88)}
+.btn.danger{
+  border-color: rgba(251,113,133,.6);
+  background: rgba(251,113,133,.16);
+}
+.btn.danger:hover{background: rgba(251,113,133,.22)}
+
+.file{position:relative; overflow:hidden; display:inline-flex; align-items:center; justify-content:center}
+.file input{position:absolute; inset:0; opacity:0; cursor:pointer}
+
+.list{display:flex; flex-direction:column; gap:10px}
+.card{
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.82);
+  border-radius: 16px;
+  padding:10px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.card:hover{border-color: rgba(54,195,125,.40)}
+.card .meta{display:flex; flex-direction:column; gap:2px; min-width:0}
+.card .name{font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.card .sub{font-size:12px;color:var(--muted)}
+.pill{
+  display:inline-flex; gap:6px; align-items:center;
+  padding:6px 8px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background: rgba(248,251,255,.92);
+  font-size:12px;
+  color:var(--muted);
+}
+.pill b{color:var(--text)}
+.badge{
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  border:1px solid rgba(54,195,125,.4);
+  background: rgba(54,195,125,.12);
+  color: var(--text);
+}
+
+.main-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:14px;
+}
+.picker{display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap}
+.lbl{display:flex; flex-direction:column; gap:6px; font-size:12px; color:var(--muted)}
+.lbl b{color:var(--text)}
+.legend{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px}
+.chip{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.86);
+  font-size:12px;
+  color:var(--muted);
+}
+.chip:before{
+  content:"";
+  width:10px;height:10px;border-radius:3px;
+  background: rgba(255,255,255,.25);
+  border:1px solid var(--line);
+}
+.chip.off:before{background: rgba(54,195,125,.35); border-color: rgba(54,195,125,.55)}
+.chip.extra:before{background: rgba(255,176,32,.35); border-color: rgba(255,176,32,.55)}
+.chip.work:before{background: rgba(44,123,229,.35); border-color: rgba(44,123,229,.55)}
+
+.calendar-wrap{overflow:auto; border-radius:16px; border:1px solid var(--line)}
+.calendar{
+  min-width: 980px;
+  background: rgba(255,255,255,.82);
+}
+table{border-collapse:separate;border-spacing:0; width:100%}
+th,td{border-right:1px solid var(--line); border-bottom:1px solid var(--line)}
+th:first-child, td:first-child{border-left:1px solid var(--line)}
+thead th{
+  position:sticky; top:0; z-index:5;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(6px);
+  font-size:12px;
+  color:var(--muted);
+  padding:8px 6px;
+  text-align:center;
+  white-space:nowrap;
+}
+thead th:first-child{left:0; z-index:6; text-align:left; padding-left:10px}
+tbody th{
+  position:sticky; left:0; z-index:4;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(6px);
+  text-align:left;
+  padding:8px 10px;
+  white-space:nowrap;
+  max-width:280px;
+}
+
+/* O botão "Editar" no calendário não precisa ser visível (o nome já abre o editor) */
+tbody th [data-edit]{
+  display:none !important;
+}
+tbody td{
+  padding:6px;
+  text-align:center;
+  min-width:36px;
+  height:34px;
+  cursor:pointer;
+  background: rgba(255,255,255,.70);
+}
+tbody td:hover{background: rgba(255,255,255,.92)}
+
+.cell{
+  display:grid;
+  place-items:center;
+  height:100%;
+  border-radius:10px;
+  border:1px solid transparent;
+  font-size:12px;
+  color:var(--muted);
+  font-weight:800;
+}
+td.off .cell{background: rgba(54,195,125,.18); border-color: rgba(54,195,125,.45); color: #0b1220}
+td.extraoff .cell{background: rgba(255,176,32,.20); border-color: rgba(255,176,32,.55); color:#0b1220}
+td.extrawork .cell{background: rgba(44,123,229,.16); border-color: rgba(44,123,229,.45); color:#0b1220}
+
+.week{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+.wday{
+  display:flex; align-items:center; gap:8px;
+  padding:8px 10px;
+  border-radius: 14px;
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.86);
+  color:var(--muted);
+  cursor:pointer;
+  user-select:none;
+}
+.wday input{accent-color: var(--green)}
+.box{
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.86);
+  border-radius:16px;
+  padding:12px;
+  margin-top:12px;
+}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+.pillrows{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px}
+.pills{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px}
+.pills .pill{cursor:pointer}
+.pills .pill:hover{border-color: rgba(255,176,32,.55)}
+
+.modal{
+  position:fixed; inset:0;
+  display:none;
+  background: rgba(0,0,0,.55);
+  padding:18px;
+  z-index:50;
+}
+.modal.show{display:flex; align-items:center; justify-content:center}
+.modal-card{
+  width:min(820px, 100%);
+  max-height: calc(100vh - 36px);
+  overflow:auto;
+  border-radius: 20px;
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.96);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow);
+}
+.modal-head, .modal-foot{padding:14px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:12px}
+.modal-head{justify-content:space-between}
+.modal-body{padding:14px}
+.modal-foot{border-top:1px solid var(--line); border-bottom:none}
+.icon-btn{
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.86);
+  color:var(--text);
+  border-radius:12px;
+  padding:8px 10px;
+  cursor:pointer;
+}
+.icon-btn:hover{background: rgba(255,255,255,.95)}
+.spacer{flex:1}
+
+.foot{
+  padding:10px 16px 18px;
+  color:var(--muted);
+}
+
+@media (max-width: 980px){
+  .layout{grid-template-columns:1fr}
+  .brand-logo{width:140px}
+}
+
+/* Print (PDF) */
+@media print{
+  @page{ size: A4 landscape; margin: 8mm; }
+  body{background:#fff;color:#111}
+  *{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .topbar, .left, .foot, #btnInstall, #btnToday{display:none !important}
+  .layout{display:block; padding:0}
+  .panel{box-shadow:none; border:none; border-radius:0}
+  .panel-head{border:none}
+  .calendar-wrap{border:none}
+  /* Print-safe: remove clipping and sticky/blur effects */
+  .calendar-wrap{overflow:visible !important; max-height:none !important}
+  .calendar{min-width:0 !important; background:#fff !important}
+  thead{display:table-header-group !important}
+  tr{page-break-inside:avoid}
+  thead th, tbody th{backdrop-filter:none !important; -webkit-backdrop-filter:none !important}
+  thead th:first-child, tbody th{width:260px !important; min-width:260px !important; max-width:260px !important}
+  /* Sticky headers/first column can break printing in some browsers */
+  thead th, tbody th{position:static !important; background:#fff !important; color:#111}
+  /* garantir que o nome do colaborador apareça no PDF */
+  tbody th{white-space:normal !important; overflow:visible !important; min-width:230px !important}
+  tbody th [data-edit]{display:none !important}
+  table{border-collapse:collapse !important}
+  th,td{border:1px solid #d9d9d9 !important}
+  thead th{font-size:10px !important; padding:4px 3px !important}
+  tbody th{font-size:10px !important; padding:4px 6px !important; max-width:none}
+  td{background:#fff; padding:2px !important; min-width:22px !important; height:20px !important}
+  .cell{border-radius:4px !important; font-size:10px !important; color:#111 !important}
+  td.off .cell{background:#e9fff1 !important; border-color:#7ee2a7 !important; color:#111}
+  td.extraoff .cell{background:#fff6e3 !important; border-color:#ffd28a !important; color:#111}
+  td.extrawork .cell{background:#e8f0ff !important; border-color:#9bbcff !important; color:#111}
+}
+
+
+/* Domingo trabalhado */
+.chip.sunwork{background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.45); color:#b91c1c;}
+.calendar td.sunwork{background:rgba(239,68,68,.10); border-color:rgba(239,68,68,.45);} 
+.calendar td.sunwork .cell{color:#991b1b; font-weight:800;}
+.sunday-grid{display:flex; flex-wrap:wrap; gap:10px;}
+.sunday-item{display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid rgba(15,23,42,.18); border-radius:12px; background:#fff;}
+.sunday-item input{width:16px; height:16px;}
+@media print{
+  .calendar td.sunwork{background:rgba(239,68,68,.10) !important; border-color:rgba(120,120,120,.35) !important;}
+  .calendar td.sunwork .cell{color:#000 !important; font-weight:700 !important;}
+}
+
+
+.select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);outline:none}
+
+
+.absent-name{ text-decoration: line-through; text-decoration-thickness: 2px; opacity:.7 }
+.absence-row td{ background: rgba(255, 122, 0, .08); border-top: 0; }
+.absence-row .absence-msg{ text-align:center; font-weight:700; color: var(--accent2, #f97316); padding:6px 8px; }
+.absence-row.abs-ferias td{ background: rgba(250, 204, 21, .10); }
+.absence-row.abs-ferias .absence-msg{ color:#ea580c; }
+.absence-row.abs-afastamento td{ background: rgba(248, 113, 113, .10); }
+.absence-row.abs-afastamento .absence-msg{ color:#dc2626; }
+/* =========================================================
+   AJUSTE FINO CORRIGIDO: CONTROLE DE TEXTO GRANDE
+   ========================================================= */
+
+/* 1. Calendário: Corta o nome grande com "..." sem vazar por cima dos dias */
+.calendar tbody th {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Garante que na hora de Gerar o PDF o nome apareça inteiro novamente */
+@media print {
+  .calendar tbody th {
+    overflow: visible !important;
+    white-space: normal !important;
+  }
+}
+
+/* 2. Painel Lateral: Impede que o "Sem folga fixa" ou nomes quebrem a caixinha */
+.card .meta {
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.card .pill {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Se o texto dentro da pill estiver dentro de uma tag em negrito */
+.card .pill b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: middle;
+}
+/* =========================================================
+   FOLGA DE DOMINGO (CINZA CLARO)
+   ========================================================= */
+td.sunoff .cell {
+  background: rgba(11, 18, 32, 0.08); /* Fundo cinza claro */
+  border-color: rgba(11, 18, 32, 0.25); /* Borda cinza suave */
+  color: #0b1220; /* Cor da letra */
+}
+
+/* Garante que o cinza saia perfeitamente na hora de Gerar o PDF */
+@media print {
+  td.sunoff .cell {
+    background: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+  }
+}
+/* =========================================================
+   TELA DE LOGIN (FIREBASE / MULTI-LOJA)
+   ========================================================= */
+.login-overlay {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(5px);
+}
+.login-box {
+  background: var(--panel);
+  padding: 30px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  width: 90%;
+  max-width: 380px;
+  border: 1px solid var(--line);
+}
+/* =========================================================
+   AJUSTE DEFINITIVO: ENQUADRAMENTO DE NOMES E CORES (FIREBASE)
+   ========================================================= */
+
+/* 1. Trava a largura da tabela inteira */
+.calendar table {
+  table-layout: fixed !important;
+  width: 100% !important;
+}
+
+/* 2. Força a coluna dos Nomes a não esticar e esconde o resto com "..." */
+.calendar thead th:first-child,
+.calendar tbody th {
+  width: 220px !important;
+  max-width: 220px !important;
+  min-width: 220px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+  vertical-align: middle !important;
+}
+
+/* Protege os contêineres internos do Nome e Matrícula */
+.calendar tbody th > div {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  width: 100% !important;
+  display: block !important;
+}
+
+/* 3. Força as células dos dias a ficarem quadradas e padronizadas */
+.calendar thead th:not(:first-child),
+.calendar tbody td {
+  width: 40px !important; 
+  min-width: 40px !important;
+  max-width: 40px !important;
+}
+
+/* =========================================================
+   CORES DOS DOMINGOS NO CALENDÁRIO
+   ========================================================= */
+
+/* Domingo de Folga Automático (Cinza Claro) */
+td.sunoff .cell {
+  background: rgba(11, 18, 32, 0.08) !important;
+  border-color: rgba(11, 18, 32, 0.25) !important;
+  color: #0b1220 !important;
+}
+
+/* Domingo Trabalhado (Vermelho) */
+td.sunwork .cell {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.45) !important;
+  color: #b91c1c !important;
+  font-weight: 800 !important;
+}
+
+/* 4. Proteção na hora de Gerar PDF */
+@media print {
+  .calendar table {
+    table-layout: auto !important;
+  }
+  .calendar thead th:first-child,
+  .calendar tbody th {
+    max-width: none !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    width: auto !important;
+  }
+  td.sunoff .cell {
+    background: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+  }
+  td.sunwork .cell {
+    background: rgba(239,68,68,.10) !important;
+    border-color: rgba(120,120,120,.35) !important;
+    color: #000 !important;
+  }
+}
