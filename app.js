@@ -83,7 +83,6 @@ const load = async () => {
   if(!loggedInStore) return;
   try {
     const dbRef = ref(database);
-    // Puxa os dados apenas da loja logada
     const snapshot = await get(child(dbRef, `escalas/${loggedInStore}`));
     if (snapshot.exists()) {
       state = snapshot.val();
@@ -91,7 +90,6 @@ const load = async () => {
       if(!state.cargoFilter) state.cargoFilter = "__ALL__";
       selectedCargoFilter = state.cargoFilter;
     } else {
-      // Loja nova sem dados, inicia limpo
       state = { employees: [], selectedEmployeeId: null, cargoFilter: "__ALL__" };
     }
   } catch (e) {
@@ -103,7 +101,6 @@ const load = async () => {
 const save = async () => {
   if(!loggedInStore) return;
   try {
-    // Salva os dados no diretório da loja específica no Firebase
     const dbRef = ref(database, 'escalas/' + loggedInStore);
     await set(dbRef, state);
   } catch (e) {
@@ -112,7 +109,7 @@ const save = async () => {
   }
 };
 
-// ---------- CSV Parsers (Mantidos intactos) ----------
+// ---------- CSV Parsers ----------
 const normalize = (s) => (s||"").toString().trim();
 const parseCSV = (text) => {
   const lines = text.replace(/\r/g,"").split("\n").filter(l => l.trim().length>0);
@@ -269,45 +266,83 @@ const renderEmployeeList = () => {
 
 const renderCalendar = () => {
   const container = $("#calendar");
-  const days = monthDays(selectedYear, selectedMonth);
-  const head = [];
-  head.push(`<thead><tr><th>Colaborador</th>`);
-  for(let d=1; d<=days; d++){
-    const w = WEEKDAYS[new Date(selectedYear, selectedMonth, d).getDay()].short;
-    head.push(`<th>${d}<div class="small muted">${w}</div></th>`);
-  }
-  head.push(`</tr></thead>`);
-
-  const body = []; body.push("<tbody>");
   const emps = state.employees.slice().filter(e => (selectedCargoFilter === "__ALL__") || ((e.cargo||"").trim() === selectedCargoFilter)).sort((a,b) => (a.name||"").localeCompare(b.name||"", "pt-BR"));
+  const sectorName = selectedCargoFilter === "__ALL__" ? "TODOS OS SETORES" : selectedCargoFilter;
 
-  for(const e of emps){
-    body.push(`<tr data-emp="${e.id}"><th>
-      <div style="display:flex;gap:10px;align-items:center;justify-content:space-between">
-        <div><div style="font-weight:900">${escapeHtml(e.name)}</div><div class="small muted">Mat: ${escapeHtml(e.matricula||"-")}</div></div>
-        <button class="btn ghost" style="padding:8px 10px" data-edit="${e.id}">Editar</button>
-      </div>
-    </th>`);
+  // Função isolada que gera a tabela para qualquer mês fornecido
+  const buildTable = (y, m) => {
+    const days = monthDays(y, m);
+    const head = [`<thead><tr><th>Colaborador</th>`];
     for(let d=1; d<=days; d++){
-      const dt = new Date(selectedYear, selectedMonth, d);
-      const info = isOff(e, dt);
-      const cls = info.kind === "absence" ? "absence" : (info.kind === "sundaywork" ? "sunwork" : (info.kind === "sunoff" ? "sunoff" : (info.kind === "extraoff" ? "extraoff" : (info.kind === "extrawork" ? "extrawork" : (info.off ? "off" : "")))));
-      const title = info.kind === "absence" ? (e.absence?.type === "afastamento" ? "Afastamento" : "Férias") : (info.kind === "sundaywork" ? "Domingo trabalhado" : (info.kind === "sunoff" ? "Folga de Domingo" : (info.kind === "extraoff" ? "Folga alterada!" : (info.kind === "extrawork" ? "Trabalha/Não folga" : (info.off ? "Folga" : "Trabalha")))));
-      const mark = info.kind === "absence" ? "" : (info.kind === "sundaywork" ? "D" : (info.off ? "F" : "T"));
-      body.push(`<td class="${cls}" data-date="${ymd(dt)}" title="${title}"><div class="cell">${mark}</div></td>`);
+      const w = WEEKDAYS[new Date(y, m, d).getDay()].short;
+      head.push(`<th>${d}<div class="small muted">${w}</div></th>`);
     }
-    body.push("</tr>");
-  }
-  body.push("</tbody>");
-  container.innerHTML = `<table>${head.join("")}${body.join("")}</table>`;
+    head.push(`</tr></thead>`);
 
+    const body = []; body.push("<tbody>");
+    for(const e of emps){
+      body.push(`<tr data-emp="${e.id}"><th>
+        <div style="display:flex;gap:10px;align-items:center;justify-content:space-between">
+          <div><div style="font-weight:900">${escapeHtml(e.name)}</div><div class="small muted">Mat: ${escapeHtml(e.matricula||"-")}</div></div>
+          <button class="btn ghost" style="padding:8px 10px" data-edit="${e.id}">Editar</button>
+        </div>
+      </th>`);
+      for(let d=1; d<=days; d++){
+        const dt = new Date(y, m, d);
+        const info = isOff(e, dt);
+        const cls = info.kind === "absence" ? "absence" : (info.kind === "sundaywork" ? "sunwork" : (info.kind === "sunoff" ? "sunoff" : (info.kind === "extraoff" ? "extraoff" : (info.kind === "extrawork" ? "extrawork" : (info.off ? "off" : "")))));
+        const title = info.kind === "absence" ? (e.absence?.type === "afastamento" ? "Afastamento" : "Férias") : (info.kind === "sundaywork" ? "Domingo trabalhado" : (info.kind === "sunoff" ? "Folga de Domingo" : (info.kind === "extraoff" ? "Folga alterada!" : (info.kind === "extrawork" ? "Trabalha/Não folga" : (info.off ? "Folga" : "Trabalha")))));
+        const mark = info.kind === "absence" ? "" : (info.kind === "sundaywork" ? "D" : (info.off ? "F" : "T"));
+        body.push(`<td class="${cls}" data-date="${ymd(dt)}" title="${title}"><div class="cell">${mark}</div></td>`);
+      }
+      body.push("</tr>");
+    }
+    body.push("</tbody>");
+    return `<div class="table-responsive"><table class="calendar">${head.join("")}${body.join("")}</table></div>`;
+  };
+
+  // Cálculo de Meses
+  const nextM = selectedMonth === 11 ? 0 : selectedMonth + 1;
+  const nextY = selectedMonth === 11 ? selectedYear + 1 : selectedYear;
+
+  // Montando a UI inspirada na sua imagem (Setor, Mês Atual e Próximo Mês)
+  container.innerHTML = `
+    <div class="multi-month-view">
+      <div class="sector-header">
+        <div class="sh-title">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+          SETOR: ${escapeHtml(sectorName).toUpperCase()}
+        </div>
+        <div class="sh-count">👥 ${emps.length} Colaborador(es)</div>
+      </div>
+      
+      <div class="month-section">
+        <div class="month-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          Mês Atual (${pad2(selectedMonth+1)}/${selectedYear})
+        </div>
+        ${buildTable(selectedYear, selectedMonth)}
+      </div>
+
+      <div class="month-section">
+        <div class="month-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          Mês Próximo (${pad2(nextM+1)}/${nextY})
+        </div>
+        ${buildTable(nextY, nextM)}
+      </div>
+    </div>
+  `;
+
+  // Re-aplicando eventos (agora ele varre todas as tabelas criadas na tela de uma vez)
   $$("[data-edit]").forEach(btn => btn.addEventListener("click", (ev) => { ev.stopPropagation(); openModal(btn.getAttribute("data-edit")); }));
+  
   $$("tbody th", container).forEach(th => {
     th.style.cursor = "pointer";
     th.addEventListener("click", () => { const empId = th.closest("tr")?.getAttribute("data-emp"); if(empId) openModal(empId); });
   });
 
-$$("tbody td", container).forEach(td => {
+  $$("tbody td", container).forEach(td => {
     td.addEventListener("click", async () => {
       const empId = td.closest("tr")?.getAttribute("data-emp");
       const dateStr = td.getAttribute("data-date");
@@ -316,26 +351,24 @@ $$("tbody td", container).forEach(td => {
       if(!emp) return;
       
       const dt = parseYMD(dateStr);
-      const key = monthKey();
+      // MÁGICA AQUI: Ele calcula a chave baseada no clique, assim não importa em qual mês você clica, salva certo no Firebase!
+      const key = `${dt.getFullYear()}-${pad2(dt.getMonth()+1)}`;
+      
       emp.extraOff ||= {}; emp.extraWork ||= {}; emp.extraOff[key] ||= []; emp.extraWork[key] ||= [];
       const extraOff = emp.extraOff[key]; const extraWork = emp.extraWork[key];
       const fixed = (emp.offWeekdays||[]).includes(dt.getDay());
       
-      // === CORREÇÃO: Lógica exclusiva e blindada para o Domingo ===
       if (dt.getDay() === 0) {
         emp.sundayWork ||= {}; 
         emp.sundayWork[key] ||= [];
         const sunWork = emp.sundayWork[key];
         
         if (sunWork.includes(dateStr)) {
-          // Se estava vermelho (Trabalhado), desmarca e volta a ser folga (Cinza)
           emp.sundayWork[key] = sunWork.filter(x => x !== dateStr);
         } else {
-          // Se era folga, marca como Domingo Trabalhado (Fica Vermelho)
           emp.sundayWork[key].push(dateStr);
         }
       } 
-      // === Lógica para os outros dias da semana ===
       else {
         if(extraOff.includes(dateStr)) emp.extraOff[key] = extraOff.filter(x => x !== dateStr);
         else if(extraWork.includes(dateStr)) emp.extraWork[key] = extraWork.filter(x => x !== dateStr);
@@ -550,7 +583,6 @@ const setupLogin = () => {
     location.reload(); // Recarrega a página para voltar pra tela de login
   });
 
-  // Se já tiver feito login antes na sessão, pula a tela direto
   if(loggedInStore) {
     $("#loginOverlay").style.display = "none";
     $("#currentStoreBadge").textContent = `Loja: ${loggedInStore}`;
@@ -561,9 +593,8 @@ const setupLogin = () => {
 const initAfterLogin = async () => {
   if("serviceWorker" in navigator) try{ await navigator.serviceWorker.register("./sw.js"); }catch(_){}
   
-  await load(); // Busca dados exclusivos da loja conectada no Firebase
+  await load();
   
-  // Reforço estrutural na base recebida
   for(const e of (state.employees||[])){
     e.offWeekdays ||= []; e.extraOff ||= {}; e.extraWork ||= {}; e.sundayWork ||= {}; e.cargo ||= "";
     if(e.absence === undefined) e.absence = null;
